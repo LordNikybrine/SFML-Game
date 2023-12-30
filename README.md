@@ -1,1 +1,1 @@
-A SFML game.
+An SFML game.
