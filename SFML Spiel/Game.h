@@ -25,7 +25,11 @@ public:
 	Game();
 	virtual ~Game();
 
+	//Accessors
+	const bool running() const;
+
 	//Func
+	void pollEvents();
 	void update();
 	void render();
 };
