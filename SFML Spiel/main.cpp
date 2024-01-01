@@ -1,7 +1,7 @@
-#include <SFML/Graphics.hpp>
+#include "Game.h"
 
 int main() {
-	sf::RenderWindow window(sf::VideoMode(640, 480), "RPG-Game", sf::Style::Titlebar | sf::Style::Close);
+	sf::RenderWindow window(sf::VideoMode(1024, 768), "Game 1", sf::Style::Titlebar | sf::Style::Close);
 
 	sf::Event ev;
 
