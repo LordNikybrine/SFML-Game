@@ -13,24 +13,32 @@ void checkInput(float speed, sf::CircleShape& circle);
 void update(float speed, sf::CircleShape& circle);
 
 // Funktion zum Zeichnen
-void render(sf::RenderWindow& window, const sf::CircleShape& circle);
+void render(sf::RenderWindow& window, const sf::CircleShape& circle, const sf::CircleShape& enemy);
+
+// Funktion für Gegner
+void update_enemys(sf::CircleShape& enemy, float speed);
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Kreis");
     sf::CircleShape circle(50);
     sf::Texture texture;
 
+    sf::CircleShape enemy(30);  // Größe des Feinds
+    enemy.setFillColor(sf::Color::Red);
+
     initialize(window, circle, texture);
 
-    float speed = 0.2f;
+    float playerSpeed = 0.2f;
+    float enemySpeed = 0.1f;
 
     while (window.isOpen()) {
         processEvents(window);
-        checkInput(speed, circle);
-        update(speed, circle);
+        checkInput(playerSpeed, circle);
+        update(playerSpeed, circle);
+        update_enemys(enemy, enemySpeed);
 
         window.clear();
-        render(window, circle);
+        render(window, circle, enemy);
         window.display();
     }
 
@@ -66,11 +74,37 @@ void checkInput(float speed, sf::CircleShape& circle) {
         circle.move(0, speed);
 }
 
+void update_enemys(sf::CircleShape& enemy, float speed) {
+    static bool initialized = false;
+    static int direction = 1;
+    static float enemySpeed = 0.1f;
+
+    if (!initialized) {
+        // Seed für die Zufallsgenerierung initialisieren
+        std::srand(std::time(nullptr));
+        initialized = true;
+    }
+
+    // Aktualisierung der Position des Feinds
+    enemy.move(direction * enemySpeed, 0);
+
+    // Wenn der Feind den Rand des Fensters erreicht hat
+    if (enemy.getPosition().x < 0 || enemy.getPosition().x > 800) {
+        // Zufällige Änderung der Bewegungsrichtung
+        direction = (std::rand() % 2 == 0) ? 1 : -1;
+
+        // Setze den Feind auf die gegenüberliegende Seite zurück
+        enemy.setPosition((direction == 1) ? 0 : 800, std::rand() % 600);
+    }
+}
+
+
 void update(float speed, sf::CircleShape& circle) {
     // Hier können weitere Aktualisierungen hinzugefügt werden, wenn nötig
 }
 
-void render(sf::RenderWindow& window, const sf::CircleShape& circle) {
+void render(sf::RenderWindow& window, const sf::CircleShape& circle, const sf::CircleShape& enemy) {
     window.draw(circle);
+    window.draw(enemy);
     // Hier können weitere Zeichenanweisungen hinzugefügt werden, wenn nötig
 }
