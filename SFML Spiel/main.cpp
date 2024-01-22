@@ -1,29 +1,18 @@
 #include <SFML/Graphics.hpp>
 
-// Funktionen zur Initialisierung
 void initialize(sf::RenderWindow& window, sf::CircleShape& circle, sf::Texture& texture);
-
-// Funktion zur Ereignisverarbeitung
 void processEvents(sf::RenderWindow& window);
-
-// Funktion zur Benutzereingabeüberprüfung
 void checkInput(float speed, sf::CircleShape& circle);
-
-// Funktion zur Aktualisierung
 void update(float speed, sf::CircleShape& circle);
-
-// Funktion zum Zeichnen
-void render(sf::RenderWindow& window, const sf::CircleShape& circle, const sf::CircleShape& enemy);
-
-// Funktion für Gegner
-void update_enemys(sf::CircleShape& enemy, float speed);
+void render(sf::RenderWindow& window, const sf::CircleShape& circle, const sf::CircleShape& enemy, bool gameOver);
+void update_enemys(sf::CircleShape& enemy, float speed, sf::CircleShape& circle, sf::RenderWindow& window, int& collisionCount, bool& gameOver);
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Kreis");
     sf::CircleShape circle(50);
     sf::Texture texture;
 
-    sf::CircleShape enemy(30);  // Größe des Feinds
+    sf::CircleShape enemy(30);
     enemy.setFillColor(sf::Color::Red);
 
     initialize(window, circle, texture);
@@ -31,14 +20,17 @@ int main() {
     float playerSpeed = 0.2f;
     float enemySpeed = 0.1f;
 
+    int collisionCount = 0;
+    bool gameOver = false;
+
     while (window.isOpen()) {
         processEvents(window);
         checkInput(playerSpeed, circle);
         update(playerSpeed, circle);
-        update_enemys(enemy, enemySpeed);
+        update_enemys(enemy, enemySpeed, circle, window, collisionCount, gameOver);
 
         window.clear();
-        render(window, circle, enemy);
+        render(window, circle, enemy, gameOver);
         window.display();
     }
 
@@ -49,7 +41,7 @@ void initialize(sf::RenderWindow& window, sf::CircleShape& circle, sf::Texture& 
     circle.setPosition(400, 300);
 
     if (!texture.loadFromFile("./assets/player.png")) {
-        return; // Fehlerbehandlung
+        return;
     }
 
     circle.setTexture(&texture);
@@ -74,37 +66,56 @@ void checkInput(float speed, sf::CircleShape& circle) {
         circle.move(0, speed);
 }
 
-void update_enemys(sf::CircleShape& enemy, float speed) {
+void update_enemys(sf::CircleShape& enemy, float speed, sf::CircleShape& circle, sf::RenderWindow& window, int& collisionCount, bool& gameOver) {
     static bool initialized = false;
-    static int direction = 1;
-    static float enemySpeed = 0.1f;
+    static float enemySpeed = 0.03f;
+    static sf::Vector2f direction = sf::Vector2f(1.0f, 1.0f);
 
     if (!initialized) {
-        // Seed für die Zufallsgenerierung initialisieren
         std::srand(std::time(nullptr));
         initialized = true;
     }
 
-    // Aktualisierung der Position des Feinds
-    enemy.move(direction * enemySpeed, 0);
+    sf::Vector2f playerPosition = circle.getPosition();
+    enemy.move(direction.x * enemySpeed, direction.y * enemySpeed);
 
-    // Wenn der Feind den Rand des Fensters erreicht hat
-    if (enemy.getPosition().x < 0 || enemy.getPosition().x > 800) {
-        // Zufällige Änderung der Bewegungsrichtung
-        direction = (std::rand() % 2 == 0) ? 1 : -1;
+    if (enemy.getPosition().x < 0 || enemy.getPosition().x > window.getSize().x) {
+        direction.x = -direction.x;
+    }
 
-        // Setze den Feind auf die gegenüberliegende Seite zurück
-        enemy.setPosition((direction == 1) ? 0 : 800, std::rand() % 600);
+    if (enemy.getPosition().y < 0 || enemy.getPosition().y > window.getSize().y) {
+        direction.y = -direction.y;
+    }
+
+    if (enemy.getGlobalBounds().intersects(circle.getGlobalBounds())) {
+        sf::Vector2f collisionVector = enemy.getPosition() - playerPosition;
+        float collisionAngle = atan2(collisionVector.y, collisionVector.x);
+        sf::Vector2f normal = sf::Vector2f(cos(collisionAngle), sin(collisionAngle));
+        direction = direction - 2.0f * (direction.x * normal.x + direction.y * normal.y) * normal;
+
+        collisionCount++;
+
+        if (collisionCount >= 1) {
+            gameOver = true;
+        }
     }
 }
-
 
 void update(float speed, sf::CircleShape& circle) {
     // Hier können weitere Aktualisierungen hinzugefügt werden, wenn nötig
 }
 
-void render(sf::RenderWindow& window, const sf::CircleShape& circle, const sf::CircleShape& enemy) {
+void render(sf::RenderWindow& window, const sf::CircleShape& circle, const sf::CircleShape& enemy, bool gameOver) {
     window.draw(circle);
     window.draw(enemy);
-    // Hier können weitere Zeichenanweisungen hinzugefügt werden, wenn nötig
+
+    if (gameOver) {
+        sf::Font font;
+        if (font.loadFromFile("./assets/Roboto-Regular.ttf")) {
+            sf::Text text("GAME OVER", font, 50);
+            text.setPosition(250, 250);
+            text.setFillColor(sf::Color::Red);
+            window.draw(text);
+        }
+    }
 }
