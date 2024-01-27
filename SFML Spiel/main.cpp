@@ -12,6 +12,7 @@ private:
 	void check_player_movement();
 	void enemys();
 	void check_for_hit();
+	void updateHitsText();
 	void update();
 	void render();
 
@@ -21,6 +22,13 @@ private:
 	sf::CircleShape enemy;
 	sf::Vector2f direction = { 0.2f, 0.2f };
 
+	sf::Font font;
+	sf::Text hitsText;
+
+	bool wasColliding = false;
+
+	int hits = 0;
+
 	float enemySpeed = 0.3;
 	float playerSpeed = 0.2;
 };
@@ -29,9 +37,21 @@ Game::Game() : window(sf::VideoMode(1680 / 2, 1050 / 2), "Spiel", sf::Style::Def
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 8;
 
+	if (!font.loadFromFile("./assets/Roboto-Regular.ttf")) {
+		// Fehler behandeln, wenn die Schriftart nicht geladen werden kann
+	}
+	hitsText.setFont(font);
+	hitsText.setCharacterSize(24);
+	hitsText.setFillColor(sf::Color::White);
+	hitsText.setPosition(10, 10);
+
 	enemy.setRadius(25);
 	enemy.setFillColor(sf::Color::Red);
 	rectangle.setSize(sf::Vector2f(50, 50));
+	rectangle.setPosition(sf::Vector2f(250, 250));
+
+	enemySpeed = window.getSize().x * 0.0004;
+	playerSpeed = window.getSize().x * 0.0002;
 }
 
 void Game::processEvents() {
@@ -93,19 +113,31 @@ void Game::enemys() {
 }
 
 void Game::check_for_hit(){
+	bool isColliding = enemy.getGlobalBounds().intersects(rectangle.getGlobalBounds());
 
+	if (isColliding && !wasColliding) {
+		hits++;
+	}
+
+	wasColliding = isColliding;
+}
+
+void Game::updateHitsText() {
+	hitsText.setString("Hits: " + std::to_string(hits));
 }
 
 void Game::update() {
 	check_player_movement();
 	enemys();
 	check_for_hit();
+	updateHitsText();
 }
 
 void Game::render() {
 	window.clear(sf::Color::Black);
 	window.draw(rectangle);
 	window.draw(enemy);
+	window.draw(hitsText);
 	window.display();
 }
 
