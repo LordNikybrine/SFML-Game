@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#include <cstdlib>
+#include <ctime>
 
 class Game {
 public:
@@ -7,30 +9,39 @@ public:
 
 private:
 	void processEvents();
+	void check_player_movement();
+	void enemys();
+	void check_for_hit();
 	void update();
 	void render();
-	void check_player_movement();
 
 private:
 	sf::RenderWindow window;
-	sf::CircleShape circle;
-	
-	float playerSpeed = 0.4;
+	sf::RectangleShape rectangle;
+	sf::CircleShape enemy;
+	sf::Vector2f direction = { 0.2f, 0.2f };
+
+	float enemySpeed = 0.3;
+	float playerSpeed = 0.2;
 };
 
-Game::Game() : window(sf::VideoMode(800, 600), "Spiel", sf::Style::Default, sf::ContextSettings(0, 0, 8)), circle(50) {
+Game::Game() : window(sf::VideoMode(1680 / 2, 1050 / 2), "Spiel", sf::Style::Default, sf::ContextSettings(0, 0, 8)) {
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 8;
+
+	enemy.setRadius(25);
+	enemy.setFillColor(sf::Color::Red);
+	rectangle.setSize(sf::Vector2f(50, 50));
 }
 
 void Game::processEvents() {
 	sf::Event event;
 	while (window.pollEvent(event)) {
-		if (event.type == sf::Event::Closed){
+		if (event.type == sf::Event::Closed) {
 			window.close();
 		}
 		if (event.type == sf::Event::Resized) {
-			// wäre cool wenn der kreis wieder rund wird
+			//TODO: proportionen beibehalten
 		}
 	}
 }
@@ -44,23 +55,57 @@ void Game::run() {
 }
 
 void Game::check_player_movement() {
+
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-		circle.move(-playerSpeed, 0);
+		rectangle.move(-playerSpeed, 0);
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		circle.move(playerSpeed, 0);
+		rectangle.move(playerSpeed, 0);
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-		circle.move(0, -playerSpeed);
+		rectangle.move(0, -playerSpeed);
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-		circle.move(0, playerSpeed);
+		rectangle.move(0, playerSpeed);
+
+	if (rectangle.getPosition().x < 0) {
+		rectangle.setPosition(0, rectangle.getPosition().y);
+	}
+	if (rectangle.getPosition().x > window.getSize().x -50) {
+		rectangle.setPosition(window.getSize().x -50, rectangle.getPosition().y);
+	}
+
+	if (rectangle.getPosition().y < 0) {
+		rectangle.setPosition(rectangle.getPosition().x, 0);
+	}
+	if (rectangle.getPosition().y > window.getSize().y - 50) {
+		rectangle.setPosition(rectangle.getPosition().x, window.getSize().y - 50);
+	}
+}
+
+void Game::enemys() {
+	enemy.move(direction.x * enemySpeed, direction.y * enemySpeed);
+
+	if (enemy.getPosition().x < 0 || enemy.getPosition().x > window.getSize().x) {
+		direction.x = -direction.x;
+	}
+
+	if (enemy.getPosition().y < 0 || enemy.getPosition().y > window.getSize().y) {
+		direction.y = -direction.y;
+	}
+}
+
+void Game::check_for_hit(){
+
 }
 
 void Game::update() {
 	check_player_movement();
+	enemys();
+	check_for_hit();
 }
 
 void Game::render() {
-	window.clear(sf::Color::Blue);
-	window.draw(circle);
+	window.clear(sf::Color::Black);
+	window.draw(rectangle);
+	window.draw(enemy);
 	window.display();
 }
 
