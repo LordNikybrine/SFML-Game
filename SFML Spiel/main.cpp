@@ -20,9 +20,11 @@ private:
 	sf::RenderWindow window;
 	sf::RectangleShape rectangle;
 	sf::CircleShape enemy;
+	sf::Sprite rectanngle;
 	sf::Vector2f direction = { 0.2f, 0.2f };
 
 	sf::Font font;
+	sf::Texture texture;
 	sf::Text hitsText;
 
 	bool wasColliding = false;
@@ -38,12 +40,19 @@ Game::Game() : window(sf::VideoMode(1680 / 2, 1050 / 2), "Spiel", sf::Style::Def
 	settings.antialiasingLevel = 8;
 
 	if (!font.loadFromFile("./assets/Roboto-Regular.ttf")) {
-		// Fehler behandeln, wenn die Schriftart nicht geladen werden kann
+		//! Irgendwie fehler behandeln
 	}
 	hitsText.setFont(font);
 	hitsText.setCharacterSize(24);
 	hitsText.setFillColor(sf::Color::White);
 	hitsText.setPosition(10, 10);
+
+	if (!texture.loadFromFile("./assets/player.png")) {
+		//! Irgendwie fehler behandeln
+	}
+	rectangle.setPosition(sf::Vector2f(250, 250));
+	texture.setSmooth(true);
+	rectangle.setTexture(&texture);
 
 	enemy.setRadius(25);
 	enemy.setFillColor(sf::Color::Red);
@@ -135,8 +144,8 @@ void Game::update() {
 
 void Game::render() {
 	window.clear(sf::Color::Black);
-	window.draw(rectangle);
 	window.draw(enemy);
+	window.draw(rectangle);
 	window.draw(hitsText);
 	window.display();
 }
