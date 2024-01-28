@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
 
 class Game {
 public:
@@ -30,6 +31,9 @@ private:
 	sf::Font font;
 	sf::Texture texture;
 	sf::Text hitsText;
+
+	// startzeit erstellen
+	std::chrono::steady_clock::time_point startTime;
 
 	// wichtig zum hits zählen
 	bool wasColliding = false;
@@ -69,6 +73,9 @@ Game::Game() : window(sf::VideoMode(1680 / 2, 1050 / 2), "Spiel", sf::Style::Def
 	enemy.setFillColor(sf::Color::Red);
 	rectangle.setSize(sf::Vector2f(50, 50));
 	rectangle.setPosition(sf::Vector2f(250, 250));
+
+	//startzeit setzen
+	startTime = std::chrono::steady_clock::now();
 
 	/*enemySpeed = window.getSize().x * 0.0004;
 	playerSpeed = window.getSize().x * 0.0002;*/
@@ -125,8 +132,21 @@ void Game::check_player_movement() {
 }
 
 void Game::enemys() {
+	// aktuelle zeit checken
+	auto currentTime = std::chrono::steady_clock::now();
+
+	// differenz zwischen jetzt und startzeit
+	double elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+
+	// Geschwindigkeit basierend auf der vergangenen Spielzeit anpassen
+	float adjustedEnemySpeed = enemySpeed + (elapsedTime / 60.0);
+	if (adjustedEnemySpeed >= 2) {
+		adjustedEnemySpeed = 2;
+	}
+
 	//gegner bewegen
-	enemy.move(direction.x * enemySpeed, direction.y * enemySpeed);
+	enemy.move(direction.x * adjustedEnemySpeed, direction.y * adjustedEnemySpeed);
+	//enemy.move(direction.x * enemySpeed, direction.y * enemySpeed);
 
 	//dafür sorgen, dass er im fenster abprallt
 	if (enemy.getPosition().x < 0 || enemy.getPosition().x > window.getSize().x) {
