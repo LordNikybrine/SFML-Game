@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <iostream>
 
 class Game {
 public:
@@ -16,6 +17,7 @@ private:
 	void enemys();
 	void check_for_hit();
 	void updateHitsText();
+	void shot();
 	void update();
 	void render();
 
@@ -24,6 +26,7 @@ private:
 	// fenster erstellen, spieler (rectangle erstellen), gegner erstellen und startgeschwindigkeit und direction für gegner erstellen
 	sf::RenderWindow window;
 	sf::RectangleShape rectangle;
+	sf::CircleShape bullet;
 	sf::CircleShape enemy;
 	sf::Vector2f direction = { 0.2f, 0.2f };
 
@@ -37,6 +40,8 @@ private:
 
 	// wichtig zum hits zählen
 	bool wasColliding = false;
+
+	bool shott = false;
 
 	//berüjhrugs variable deklarieren
 	int hits = 0;
@@ -156,6 +161,24 @@ void Game::enemys() {
 	if (enemy.getPosition().y < 0 || enemy.getPosition().y > window.getSize().y) {
 		direction.y = -direction.y;
 	}
+	int elapsedTimeInt = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+	if (!(elapsedTimeInt % 2) && !shott && elapsedTimeInt != 0) {
+		shott = true;
+		std::cout << " schießen ";
+		shot();
+	}
+	else if(elapsedTimeInt%2){
+		shott = false;
+	}
+}
+
+void Game::shot() {
+	int x = enemy.getPosition().x;
+	int y = enemy.getPosition().y;
+	bullet.setRadius(15);
+	bullet.setFillColor(sf::Color::Blue);
+	bullet.setPosition(x, y);
+	bullet.move(direction.x * 2, direction.y * 2);
 }
 
 // hits zählen
@@ -186,6 +209,7 @@ void Game::render() {
 	//erst bildschrim leeren
 	window.clear(sf::Color::Black);
 	//alles zeichnen
+	window.draw(bullet);
 	window.draw(enemy);
 	window.draw(rectangle);
 	window.draw(hitsText);
