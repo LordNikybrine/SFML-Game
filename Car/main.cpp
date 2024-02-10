@@ -23,7 +23,7 @@ int main() {
     serialParams.DCBlength = sizeof(serialParams);
 
     GetCommState(serialHandle, &serialParams);
-    serialParams.BaudRate = 9600;
+    serialParams.BaudRate = 11520;
     serialParams.ByteSize = 8;
     serialParams.StopBits = TWOSTOPBITS;
     serialParams.Parity = NOPARITY;
@@ -91,8 +91,8 @@ int main() {
             // Send data over the serial port
             DWORD bytesWritten;
             WriteFile(serialHandle, xAxisStr.c_str(), xAxisStr.length(), &bytesWritten, NULL);
-            //WriteFile(serialHandle, " ", 1, &bytesWritten, NULL); // Separator
-            //WriteFile(serialHandle, gasStr.c_str(), gasStr.length(), &bytesWritten, NULL);
+            WriteFile(serialHandle, " ", 1, &bytesWritten, NULL); // Separator
+            WriteFile(serialHandle, gasStr.c_str(), gasStr.length(), &bytesWritten, NULL);
             WriteFile(serialHandle, "\n", 1, &bytesWritten, NULL); // New line
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
