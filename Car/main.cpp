@@ -1,8 +1,12 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <Windows.h>
+#include <thread>
+#include <chrono>
 
 int main() {
+    bool xBigger100 = true;
+    bool zBigger100 = true;
     sf::RenderWindow window(sf::VideoMode(800, 600), "Joystick Input");
 
     // Joystick-Verbindung überprüfen
@@ -13,7 +17,7 @@ int main() {
 
     HANDLE serialHandle;
 
-    serialHandle = CreateFile(L"\\\\.\\COM5", GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    serialHandle = CreateFile(L"\\\\.\\COM5", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     DCB serialParams = { 0 };
     serialParams.DCBlength = sizeof(serialParams);
@@ -47,7 +51,14 @@ int main() {
             int gas = sf::Joystick::getAxisPosition(0, sf::Joystick::Z) + 100;
 
             // Ausgabe der Position auf der Konsole
-            std::cout << "X-Achsenposition: " << xAxis << " Z dings: " << gas << std::endl;
+            //std::cout << "X-Achsenposition: " << xAxis << " Z dings: " << gas << std::endl;
+
+            if (xAxis < 100) {
+                xBigger100 = false;
+            }
+            if (gas < 100) {
+                zBigger100 = false;
+            }
 
             // Convert integer values to strings
             std::string xAxisStr = std::to_string(xAxis);
@@ -55,19 +66,42 @@ int main() {
 
             xAxisStr = "1" + xAxisStr;
             gasStr = "2" + gasStr;
-            std::cout << xAxisStr << " " << gasStr;
+
+            if (!xBigger100) {
+                xAxisStr = std::to_string(xAxis);
+                xAxisStr.insert(xAxisStr.begin(), '1');
+                while (xAxisStr.length() < 4) {
+                    xAxisStr.insert(1, "0");
+                }
+                xBigger100 = true;
+            }
+
+
+            if (!zBigger100) {
+                gasStr = std::to_string(gas);
+                gasStr.insert(gasStr.begin(), '2');
+                while (gasStr.length() < 4) {
+                    gasStr.insert(1, "0");
+                }
+                zBigger100 = true;
+            }
+
+            std::cout << xAxisStr << ", " << gasStr << std::endl;
 
             // Send data over the serial port
             DWORD bytesWritten;
             WriteFile(serialHandle, xAxisStr.c_str(), xAxisStr.length(), &bytesWritten, NULL);
-            WriteFile(serialHandle, " ", 1, &bytesWritten, NULL); // Separator
-            WriteFile(serialHandle, gasStr.c_str(), gasStr.length(), &bytesWritten, NULL);
+            //WriteFile(serialHandle, " ", 1, &bytesWritten, NULL); // Separator
+            //WriteFile(serialHandle, gasStr.c_str(), gasStr.length(), &bytesWritten, NULL);
             WriteFile(serialHandle, "\n", 1, &bytesWritten, NULL); // New line
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
         }
 
         window.clear();
 
         window.display();
+
     }
 
     return 0;
