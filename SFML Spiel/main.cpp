@@ -44,6 +44,7 @@ private:
 	//gegner und spieler geschwindigkeit einstellen
 	float enemySpeed = 0.5;
 	float playerSpeed = 0.2;
+
 };
 
 Game::Game() : window(sf::VideoMode(1680 / 2, 1050 / 2), "Spiel", sf::Style::Default, sf::ContextSettings(0, 0, 8)) {
