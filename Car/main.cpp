@@ -5,6 +5,12 @@
 #include <chrono>
 
 int main() {
+    std::string comPort;
+    std::cout << "Enter the COM port (e.g., COM5): ";
+    std::cin >> comPort;
+
+    std::wstring comPortWide = L"\\\\.\\" + std::wstring(comPort.begin(), comPort.end());
+
     bool xBigger100 = true;
     bool zBigger100 = true;
     sf::RenderWindow window(sf::VideoMode(800, 600), "Joystick Input");
@@ -17,7 +23,12 @@ int main() {
 
     HANDLE serialHandle;
 
-    serialHandle = CreateFile(L"\\\\.\\COM5", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    serialHandle = CreateFile(comPortWide.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+    if (serialHandle == INVALID_HANDLE_VALUE) {
+        std::cerr << "Failed to open the serial port." << std::endl;
+        return 1;
+    }
 
     DCB serialParams = { 0 };
     serialParams.DCBlength = sizeof(serialParams);
